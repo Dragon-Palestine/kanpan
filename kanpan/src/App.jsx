@@ -4,6 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import Team from "./pages/Team";
 import ErrorBoundary from "./components/ErrorBoundary";
+import NotFound from "./pages/NotFound";
 
 
 const router = createBrowserRouter([
@@ -14,6 +15,7 @@ const router = createBrowserRouter([
       { path: "dashboard", element: <Dashboard /> },
       { path: "projects", element: <Projects /> },
       { path: "team", element: <Team /> },
+      { path: "*", element: <NotFound /> },
     ],
   },
 ]);
