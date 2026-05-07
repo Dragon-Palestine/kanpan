@@ -1,11 +1,12 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Layout from "./components/Layout";
+import { BoardProvider } from "./context/BoardContext";
+import Layout from "./components/layout/Layout";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import Team from "./pages/Team";
-import ErrorBoundary from "./components/ErrorBoundary";
+import Tasks from "./pages/Tasks";
+import ErrorBoundary from "./components/shared/ErrorBoundary";
 import NotFound from "./pages/NotFound";
-
 
 const router = createBrowserRouter([
   {
@@ -14,16 +15,23 @@ const router = createBrowserRouter([
     children: [
       { path: "dashboard", element: <Dashboard /> },
       { path: "projects", element: <Projects /> },
+      { path: "tasks", element: <Tasks /> },
+      { path: "tasks/:projectId", element: <Tasks /> },
       { path: "team", element: <Team /> },
+      { path: "team/:projectId", element: <Team /> },
       { path: "*", element: <NotFound /> },
     ],
   },
 ]);
 
 function App() {
-  return <ErrorBoundary>
-      <RouterProvider router={router} />
+  return (
+    <ErrorBoundary>
+      <BoardProvider>
+        <RouterProvider router={router} />
+      </BoardProvider>
     </ErrorBoundary>
+  );
 }
 
 export default App;

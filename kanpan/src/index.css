@@ -1,6 +1,18 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #f8fafc 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  @apply rounded;
+}
+
 @theme {
   --color-primary: #3b82f6;
   --color-primary-dark: #2563eb;
@@ -38,4 +50,18 @@
 
 .card-hover {
   @apply transition-all duration-300 hover:shadow-premium hover:-translate-y-1;
+}
+
+/* Animations */
+@keyframes slide-in-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-in {
+  animation-fill-mode: forwards;
+}
+
+.slide-in-from-right-full {
+  animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
