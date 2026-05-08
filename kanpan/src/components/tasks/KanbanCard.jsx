@@ -13,7 +13,10 @@ const KanbanCard = memo(({ task, onUpdateAssignees, onTaskClick }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useSortable({
       id: task.id,
-      data: { task },
+      data: { 
+        task,
+        type: "Task"
+      },
     });
 
   const style = {

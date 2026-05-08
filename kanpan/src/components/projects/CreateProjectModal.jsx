@@ -18,7 +18,7 @@ const CreateProjectModal = ({ onClose, onAdd }) => {
       name: name.trim(),
       code: code.trim().toUpperCase(),
       description: description.trim(),
-      status: "Active",
+      status: "DRAFTING",
       members: [], // Initial member list
       progress: 0,
       createdAt: new Date().toISOString(),

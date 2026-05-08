@@ -20,7 +20,7 @@ const ProjectControls = ({
   setSearchQuery,
 }) => {
   const [localSearch, setLocalSearch] = useState(searchQuery || "");
-
+  
   // Debounce search input
   useEffect(() => {
     if (localSearch === (searchQuery || "")) return;

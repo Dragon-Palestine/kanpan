@@ -137,22 +137,34 @@ const ProjectCard = ({ project, viewMode }) => {
 
         <div>
           <div className="flex justify-between items-center mb-2">
-            <span className="text-xs font-semibold text-slate-700">
-              Tasks Completed
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-tight">
+              Tasks: {project.tasksCompleted || 0}/{project.tasksTotal || 0}
             </span>
-            <span className="text-xs font-bold text-slate-900">
-              {project.priority}
-            </span>
-            <span className="text-xs text-slate-500">•</span>
             <span
-              className={`text-xs font-semibold ${
-                project.isDelayed ? "text-red-600" : "text-slate-600"
+              className={`text-xs font-bold ${
+                project.isDelayed ? "text-red-600" : "text-slate-500"
               }`}
             >
               {project.dueDateLabel}
             </span>
           </div>
+          
+          <div className="w-full bg-slate-100 rounded-full h-1.5 mb-4 overflow-hidden">
+            <div
+              className={`h-full transition-all duration-500 ${
+                project.status === 'DONE' ? 'bg-emerald-500' : 'bg-blue-500'
+              }`}
+              style={{ width: `${project.progress || 0}%` }}
+            ></div>
+          </div>
+
           <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold text-slate-400 uppercase">Priority:</span>
+              <span className={`text-xs font-black ${getPriorityColor(project.priority)}`}>
+                {project.priority}
+              </span>
+            </div>
             <div className="flex items-center -space-x-2">
               {project.members.slice(0, 3).map((memberId) => {
                 const member = getTeamMember(memberId, teamMembers);

@@ -69,18 +69,21 @@ export const useBoard = (projectId) => {
   const state = useBoardState();
   const dispatch = useBoardDispatch();
 
-  // Get tasks for this project, organized by status (O(1) lookups)
+  // Get tasks for this project, organized by status and preserving order
   const tasksByStatus = useMemo(() => {
     const byStatus = { todo: [], "in-progress": [], review: [], done: [] };
     if (!projectId) return byStatus;
 
-    Object.values(state.tasks).forEach((task) => {
-      if (task.projectId === projectId && byStatus[task.status] !== undefined) {
-        byStatus[task.status].push(task);
-      }
+    Object.entries(state.taskIdsByStatus).forEach(([status, ids]) => {
+      ids.forEach((id) => {
+        const task = state.tasks[id];
+        if (task && task.projectId === projectId) {
+          byStatus[status].push(task);
+        }
+      });
     });
     return byStatus;
-  }, [state.tasks, projectId]);
+  }, [state.tasks, state.taskIdsByStatus, projectId]);
 
   const selectedProject = useMemo(
     () => (projectId ? state.projects[projectId] || null : null),
@@ -101,8 +104,8 @@ export const useBoard = (projectId) => {
   // ── Actions (all memoized) ────────────────────────────────────────────────
 
   const moveTask = useCallback(
-    (taskId, newStatus) => {
-      dispatch({ type: MOVE_TASK, payload: { taskId, newStatus } });
+    (taskId, newStatus, overTaskId = null) => {
+      dispatch({ type: MOVE_TASK, payload: { taskId, newStatus, overTaskId } });
       showToast(`Task moved to ${newStatus}`);
     },
     [dispatch, showToast]
@@ -174,8 +177,29 @@ export const useProjectsContext = () => {
       const total = projectTasks.length;
       const completed = projectTasks.filter((t) => t.status === "done").length;
 
+      let status = project.status || "DRAFTING";
+      
+      if (total > 0) {
+        const hasStarted = projectTasks.some(t => ["in-progress", "review", "done"].includes(t.status));
+        const allDone = completed === total;
+
+        if (allDone) {
+          status = "DONE";
+        } else if (hasStarted) {
+          status = "IN PROGRESS";
+        } else {
+          status = "DRAFTING";
+        }
+      } else {
+        // If no tasks, we can keep it as DRAFTING or the original status if it's ON HOLD
+        if (status !== "ON HOLD") {
+          status = "DRAFTING";
+        }
+      }
+
       return {
         ...project,
+        status,
         tasksTotal: total,
         tasksCompleted: completed,
         progress: total > 0 ? Math.round((completed / total) * 100) : 0,

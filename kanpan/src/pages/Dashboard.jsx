@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useBoardState } from "../context/BoardContext";
+import { useBoardState, useProjectsContext } from "../context/BoardContext";
 
 /**
  * Dashboard Page
@@ -9,10 +9,11 @@ import { useBoardState } from "../context/BoardContext";
  */
 const Dashboard = () => {
   const state = useBoardState();
+  const { projectsList: enrichedProjects } = useProjectsContext();
   const navigate = useNavigate();
 
   const stats = useMemo(() => {
-    const projectsList = Object.values(state.projects);
+    const projectsList = enrichedProjects;
     const tasksList = Object.values(state.tasks);
 
     const totalProjects = projectsList.length;
@@ -144,12 +145,9 @@ const Dashboard = () => {
             </p>
           ) : (
             stats.projectsList.map((project) => {
-              const projectTasks = Object.values(state.tasks).filter(
-                (t) => t.projectId === project.id,
-              );
-              const done = projectTasks.filter((t) => t.status === "done").length;
-              const total = projectTasks.length;
-              const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+              const pct = project.progress || 0;
+              const done = project.tasksCompleted || 0;
+              const total = project.tasksTotal || 0;
 
               return (
                 <div
@@ -167,7 +165,7 @@ const Dashboard = () => {
                     <div className="flex items-center gap-2 mt-1.5">
                       <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-indigo-500 rounded-full"
+                          className={`h-full rounded-full ${project.status === 'DONE' ? 'bg-emerald-500' : 'bg-indigo-500'}`}
                           style={{ width: `${pct}%` }}
                         />
                       </div>
@@ -176,8 +174,15 @@ const Dashboard = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="text-xs font-bold text-slate-400">
-                    {done}/{total}
+                  <div className="text-xs font-bold text-slate-400 flex flex-col items-end">
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                      project.status === 'DONE' ? 'bg-emerald-50 text-emerald-600' : 
+                      project.status === 'IN PROGRESS' ? 'bg-blue-50 text-blue-600' : 
+                      'bg-slate-100 text-slate-500'
+                    }`}>
+                      {project.status}
+                    </span>
+                    <span className="mt-1">{done}/{total}</span>
                   </div>
                 </div>
               );

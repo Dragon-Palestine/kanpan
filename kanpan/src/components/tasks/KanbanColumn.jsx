@@ -14,7 +14,10 @@ import { kanbanColumns, taskPageCopy } from "../../constants/tasks";
 const KanbanColumn = memo(({ status, tasks = [], onUpdateAssignees, onTaskClick, isLoading }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: `column-${status}`,
-    data: { status },
+    data: { 
+      status,
+      type: "Column"
+    },
   });
 
   const info = kanbanColumns[status];

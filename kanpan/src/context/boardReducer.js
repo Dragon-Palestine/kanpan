@@ -15,6 +15,7 @@ import {
   REMOVE_TOAST,
   MAX_HISTORY,
 } from "./boardActions";
+import { arrayMove } from "@dnd-kit/sortable";
 import { saveTasks, saveProjects } from "../utils/storage";
 
 /**
@@ -58,7 +59,10 @@ export const initialBoardState = {
 /** Rebuild taskIdsByStatus from the normalized tasks map */
 const buildTaskIdsByStatus = (tasks) => {
   const byStatus = { todo: [], "in-progress": [], review: [], done: [] };
-  Object.values(tasks).forEach((task) => {
+  // Sort tasks by order before building ID arrays to maintain position
+  const sortedTasks = Object.values(tasks).sort((a, b) => (a.order || 0) - (b.order || 0));
+  
+  sortedTasks.forEach((task) => {
     if (byStatus[task.status] !== undefined) {
       byStatus[task.status].push(task.id);
     }
@@ -99,25 +103,46 @@ export const boardReducer = (state, action) => {
 
     // ── Task: Move between columns ────────────────────────────────────────
     case MOVE_TASK: {
-      const { taskId, newStatus } = action.payload;
+      const { taskId, newStatus, overTaskId } = action.payload;
       const task = state.tasks[taskId];
-      if (!task || task.status === newStatus) return state;
+      if (!task) return state;
 
       // Snapshot for undo
       const history = pushHistory(state);
 
+      const oldStatus = task.status;
       const updatedTask = { ...task, status: newStatus };
       const updatedTasks = { ...state.tasks, [taskId]: updatedTask };
 
-      // Remove from old column, add to new
-      const oldStatus = task.status;
-      const newByStatus = {
-        ...state.taskIdsByStatus,
-        [oldStatus]: state.taskIdsByStatus[oldStatus].filter((id) => id !== taskId),
-        [newStatus]: [...state.taskIdsByStatus[newStatus], taskId],
-      };
+      let newByStatus = { ...state.taskIdsByStatus };
 
-      // Persist (fire-and-forget – optimistic)
+      if (oldStatus === newStatus) {
+        // Reordering in same column
+        const columnIds = [...state.taskIdsByStatus[newStatus]];
+        const oldIndex = columnIds.indexOf(taskId);
+        const newIndex = overTaskId ? columnIds.indexOf(overTaskId) : oldIndex;
+
+        if (oldIndex !== newIndex) {
+          newByStatus[newStatus] = arrayMove(columnIds, oldIndex, newIndex);
+        } else {
+          return state; // No change
+        }
+      } else {
+        // Moving to a different column
+        const oldColumnIds = state.taskIdsByStatus[oldStatus].filter((id) => id !== taskId);
+        const newColumnIds = [...state.taskIdsByStatus[newStatus]];
+        
+        const overIndex = overTaskId ? newColumnIds.indexOf(overTaskId) : newColumnIds.length;
+        newColumnIds.splice(overIndex, 0, taskId);
+
+        newByStatus = {
+          ...state.taskIdsByStatus,
+          [oldStatus]: oldColumnIds,
+          [newStatus]: newColumnIds,
+        };
+      }
+
+      // Persist
       saveTasks(Object.values(updatedTasks));
 
       return {

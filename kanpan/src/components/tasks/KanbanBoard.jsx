@@ -32,10 +32,33 @@ const KanbanBoard = memo(({
     (event) => {
       const { active, over } = event;
       if (!over) return;
-      // Derive the target status from the column droppable id
-      const overStatus = over.data?.current?.status ?? over.id.toString().replace("column-", "");
-      if (active.id !== over.id) {
-        onTaskMove(active.id, overStatus);
+
+      const activeId = active.id;
+      const overId = over.id;
+
+      // Find status of the 'over' container or the 'over' item
+      let overStatus = "";
+      let overTaskId = null;
+
+      if (over.data?.current?.type === "Column") {
+        // Dropped over an empty column or column header
+        overStatus = over.id.toString().replace("column-", "");
+      } else {
+        // Dropped over a task card
+        const overTask = over.data?.current?.task;
+        if (overTask) {
+          overStatus = overTask.status;
+          overTaskId = overId;
+        } else {
+          // Fallback
+          overStatus = overId.toString().includes("column-") 
+            ? overId.toString().replace("column-", "")
+            : "";
+        }
+      }
+
+      if (overStatus && (activeId !== overId)) {
+        onTaskMove(activeId, overStatus, overTaskId);
       }
     },
     [onTaskMove],

@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import { BoardProvider } from "./context/BoardContext";
 import Layout from "./components/layout/Layout";
 import Dashboard from "./pages/Dashboard";
@@ -13,6 +13,7 @@ const router = createBrowserRouter([
     path: "/",
     element: <Layout />,
     children: [
+      { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: "dashboard", element: <Dashboard /> },
       { path: "projects", element: <Projects /> },
       { path: "tasks", element: <Tasks /> },
